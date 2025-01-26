@@ -2158,25 +2158,31 @@ export class BaseCompiler {
             );
         }
 
-        const execTriple = await RemoteExecutionQuery.guessExecutionTripleForBuildresult(buildResult);
-        if (!matchesCurrentHost(execTriple)) {
-            if (await RemoteExecutionQuery.isPossible(execTriple)) {
-                const result = await this.runExecutableRemotely(executablePackageHash, executeParameters, execTriple);
-                return moveArtifactsIntoResult(buildResult, {
-                    ...result,
-                    didExecute: true,
-                    buildResult: buildResult,
-                });
-            } else {
-                return {
-                    code: -1,
-                    didExecute: false,
-                    buildResult,
-                    stderr: [{text: `No execution available for ${execTriple.toString()}`}],
-                    stdout: [],
-                    execTime: 0,
-                    timedOut: false,
-                };
+        if (!this.compiler.emulated) {
+            const execTriple = await RemoteExecutionQuery.guessExecutionTripleForBuildresult(buildResult);
+            if (!matchesCurrentHost(execTriple)) {
+                if (await RemoteExecutionQuery.isPossible(execTriple)) {
+                    const result = await this.runExecutableRemotely(
+                        executablePackageHash,
+                        executeParameters,
+                        execTriple,
+                    );
+                    return moveArtifactsIntoResult(buildResult, {
+                        ...result,
+                        didExecute: true,
+                        buildResult: buildResult,
+                    });
+                } else {
+                    return {
+                        code: -1,
+                        didExecute: false,
+                        buildResult,
+                        stderr: [{text: `No execution available for ${execTriple.toString()}`}],
+                        stdout: [],
+                        execTime: 0,
+                        timedOut: false,
+                    };
+                }
             }
         }
 
