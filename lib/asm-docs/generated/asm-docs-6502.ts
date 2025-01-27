@@ -19,7 +19,7 @@ export function getAsmOpcode(opcode: string | undefined): AssemblyInstructionInf
 
         case "ASL":
             return {
-                "html": "<p>The shift left instruction shifts either the accumulator or the address memory location 1 bit to the left, with the bit 0 always being set to 0 and the the input bit 7 being stored in the carry flag. ASL either shifts the accumulator left 1 bit or is a read/modify/write instruction that affects only memory.</p><p>The instruction does not affect the overflow bit, sets N equal to the result bit 7 (bit 6 in the input), sets Z flag if the result is equal to 0, otherwise resets Z and stores the input bit 7 in the carry flag.</p>",
+                "html": "<p>The shift left instruction shifts either the accumulator or the address memory location 1 bit to the left, with the bit 0 always being set to 0 and the input bit 7 being stored in the carry flag. ASL either shifts the accumulator left 1 bit or is a read/modify/write instruction that affects only memory.</p><p>The instruction does not affect the overflow bit, sets N equal to the result bit 7 (bit 6 in the input), sets Z flag if the result is equal to 0, otherwise resets Z and stores the input bit 7 in the carry flag.</p>",
                 "tooltip": "Arithmetic Shift Left",
                 "url": "https://www.pagetable.com/c64ref/6502/?cpu=6502&tab=2#ASL",
             };
@@ -300,7 +300,7 @@ export function getAsmOpcode(opcode: string | undefined): AssemblyInstructionInf
         case "RTS":
             return {
                 "html": "<p>This instruction loads the program count low and program count high from the stack into the program counter and increments the program counter so that it points to the instruction following the JSR. The stack pointer is adjusted by incrementing it twice.</p><p>The RTS instruction does not affect any flags and affects only PCL and PCH.</p>",
-                "tooltip": "Return From Subroutme",
+                "tooltip": "Return From Subroutine",
                 "url": "https://www.pagetable.com/c64ref/6502/?cpu=6502&tab=2#RTS",
             };
 
@@ -404,7 +404,7 @@ export function getAsmOpcode(opcode: string | undefined): AssemblyInstructionInf
 
         case "SHA":
             return {
-                "html": "<p>The undocumented SHA instruction performs a bit-by-bit AND operation of the following three operands: The first two are the accumulator and the index register X.</p><p>The third operand depends on the addressing mode. In the zero page indirect Y-indexed case, the third operand is the data in memory at the given zero page address (ignoring the the addressing mode's Y offset) plus 1. In the Y-indexed absolute case, it is the upper 8 bits of the given address (ignoring the the addressing mode's Y offset), plus 1.</p><p>It then transfers the result to the addressed memory location.</p><p>No flags or registers in the microprocessor are affected by the store operation.</p>",
+                "html": "<p>The undocumented SHA instruction performs a bit-by-bit AND operation of the following three operands: The first two are the accumulator and the index register X.</p><p>The third operand depends on the addressing mode. In the zero page indirect Y-indexed case, the third operand is the data in memory at the given zero page address (ignoring the addressing mode's Y offset) plus 1. In the Y-indexed absolute case, it is the upper 8 bits of the given address (ignoring the addressing mode's Y offset), plus 1.</p><p>It then transfers the result to the addressed memory location.</p><p>No flags or registers in the microprocessor are affected by the store operation.</p>",
                 "tooltip": "Store Accumulator \"AND\" Index Register X \"AND\" Value",
                 "url": "https://www.pagetable.com/c64ref/6502/?cpu=6502&tab=2#SHA",
             };
@@ -488,14 +488,14 @@ export function getAsmOpcode(opcode: string | undefined): AssemblyInstructionInf
 
         case "SHX":
             return {
-                "html": "<p>The undocumented SHX instruction performs a bit-by-bit AND operation of the index register X and the upper 8 bits of the given address (ignoring the the addressing mode's Y offset), plus 1. It then transfers the result to the addressed memory location.</p><p>No flags or registers in the microprocessor are affected by the store operation.</p>",
+                "html": "<p>The undocumented SHX instruction performs a bit-by-bit AND operation of the index register X and the upper 8 bits of the given address (ignoring the addressing mode's Y offset), plus 1. It then transfers the result to the addressed memory location.</p><p>No flags or registers in the microprocessor are affected by the store operation.</p>",
                 "tooltip": "Store Index Register X \"AND\" Value",
                 "url": "https://www.pagetable.com/c64ref/6502/?cpu=6502&tab=2#SHX",
             };
 
         case "SHY":
             return {
-                "html": "<p>The undocumented SHY instruction performs a bit-by-bit AND operation of the index register Y and the upper 8 bits of the given address (ignoring the the addressing mode's X offset), plus 1. It then transfers the result to the addressed memory location.</p><p>No flags or registers in the microprocessor are affected by the store operation.</p>",
+                "html": "<p>The undocumented SHY instruction performs a bit-by-bit AND operation of the index register Y and the upper 8 bits of the given address (ignoring the addressing mode's X offset), plus 1. It then transfers the result to the addressed memory location.</p><p>No flags or registers in the microprocessor are affected by the store operation.</p>",
                 "tooltip": "Store Index Register Y \"AND\" Value",
                 "url": "https://www.pagetable.com/c64ref/6502/?cpu=6502&tab=2#SHY",
             };
