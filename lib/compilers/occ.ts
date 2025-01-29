@@ -38,10 +38,21 @@ export class OCCCompiler extends BaseCompiler {
         return 'orcac';
     }
 
+    goldenGate: string;
+
     constructor(compilerInfo: PreliminaryCompilerInfo, env: CompilationEnvironment) {
         super(compilerInfo, env);
-
+        this.goldenGate = this.compilerProps<string>(`group.${this.compiler.group}.goldenGate`);
         this.asm = new ORCAAsmParser(this.compilerProps);
+    }
+
+    override getDefaultExecOptions() {
+        const execOptions = super.getDefaultExecOptions();
+        if (this.goldenGate) {
+            execOptions.env.GOLDEN_GATE = this.goldenGate;
+        }
+
+        return execOptions;
     }
 
     override getOutputFilename(dirPath: string, outputFilebase: string) {
