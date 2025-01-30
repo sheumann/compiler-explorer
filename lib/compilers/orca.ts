@@ -24,25 +24,23 @@
 
 import path from 'path';
 
-import _ from 'underscore';
-
 import type {PreliminaryCompilerInfo} from '../../types/compiler.interfaces.js';
 import type {ParseFiltersAndOutputOptions} from '../../types/features/filters.interfaces.js';
-import {SelectedLibraryVersion} from '../../types/libraries/libraries.interfaces.js';
 import {BaseCompiler} from '../base-compiler.js';
 import {CompilationEnvironment} from '../compilation-env.js';
 import {ORCAAsmParser} from '../parsers/asm-parser-orca.js';
+import * as utils from '../utils.js';
 
-export class OCCCompiler extends BaseCompiler {
+export class ORCACompiler extends BaseCompiler {
     static get key() {
-        return 'orcac';
+        return 'orca';
     }
 
     goldenGate: string;
 
     constructor(compilerInfo: PreliminaryCompilerInfo, env: CompilationEnvironment) {
         super(compilerInfo, env);
-        this.goldenGate = this.compilerProps<string>(`group.${this.compiler.group}.goldenGate`);
+        this.goldenGate = this.compilerProps<string>(`compiler.${this.compiler.id}.goldenGate`);
         this.asm = new ORCAAsmParser(this.compilerProps);
     }
 
@@ -59,26 +57,18 @@ export class OCCCompiler extends BaseCompiler {
         return path.join(dirPath, `${outputFilebase}.a`);
     }
 
-    override getSharedLibraryPathsAsArguments(libraries: SelectedLibraryVersion[], libDownloadPath?: string) {
-        const libPathFlag = this.compiler.libpathFlag || '-L';
-
-        if (!libDownloadPath) {
-            libDownloadPath = '.';
-        }
-
-        return _.union(
-            [libPathFlag + libDownloadPath],
-            this.compiler.libPath.map(path => libPathFlag + path),
-            this.getSharedLibraryPaths(libraries).map(path => libPathFlag + path),
-        ) as string[];
+    override getSharedLibraryPathsAsArguments() {
+        return [];
     }
 
     override optionsForFilter(filters: ParseFiltersAndOutputOptions, outputFilename: string, userOptions?: string[]) {
-        let options = ['-o', this.filename(outputFilename)];
+        let options: string[];
 
-        if (!filters.binary) {
+        if (filters.binary) {
+            options = ['cmpl', 'keep=' + this.filename(outputFilename)];
+        } else {
             filters.binaryObject = true;
-            options = options.concat('-c');
+            options = ['compile', 'keep=' + this.filename(utils.changeExtension(outputFilename, ''))];
         }
 
         return options;
