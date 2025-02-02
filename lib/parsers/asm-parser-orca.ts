@@ -1,4 +1,4 @@
-// Copyright (c) 2022, Compiler Explorer Authors
+// Copyright (c) 2025, Compiler Explorer Authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -29,42 +29,55 @@ import {PropertyGetter} from '../properties.interfaces.js';
 import {AsmParser} from './asm-parser.js';
 
 export class ORCAAsmParser extends AsmParser {
-    labelWithAsmRe: RegExp;
-    labelAssignmentRe: RegExp;
-    justAsmRe: RegExp;
-    labelAddressRe: RegExp;
+    labelDefinitionRe: RegExp;
+    operandRe: RegExp;
+    labelInOperandRe: RegExp;
     directiveRe: RegExp;
-    labelExtractRe: RegExp;
+    linePreCommentRe: RegExp;
+    labelOpcodeOperandRe: RegExp;
+    buggyLabelRe: RegExp;
 
     constructor(compilerProps: PropertyGetter) {
         super(compilerProps);
 
-        this.labelWithAsmRe = /(L[\dA-F]{4}):\s*(.*)/;
-        this.labelAssignmentRe = /(L[\dA-F]{4})\s*:=\s(\$[\dA-F]{4})/;
-        this.justAsmRe = /^\s{8}([.a-z]+\s*.*)/i;
-        this.commentRe = /^;\s.*/;
-        this.labelAddressRe = /L([\dA-F]{4})/;
-        this.directiveRe = /^\./;
-        this.labelExtractRe = /(L[\dA-F]{4})/;
+        this.commentRe = /^[!*;]\s.*/;
+        this.labelDefinitionRe = /^([A-Z_a-z~][\w~]*)/;
+        this.operandRe = /^((?:[A-Z_a-z~][\w~]*)*\s+[A-Za-z]{3}\s+)([^;]+)/;
+        this.labelInOperandRe = /^[#(>|]*([A-Z_a-z~][\w~]*)/;
+        this.directiveRe =
+            /^\s+(?:align|anop|case|codechk|datachk|dynchk|eject|err|expand|ieee|instime|keep|kind|list|longa|longi|mem|merr|objcase|printer|setcom|symbol|title|65c02|65816)\s+/;
+        this.linePreCommentRe = /^(.{80}[^;]*);/;
+        this.labelOpcodeOperandRe = /^((?:[A-Z_a-z~][\w~]*)?)\s+([\w~]+)\s*(.*)/;
+        this.buggyLabelRe = /^([\w~]{20,})(start|entry)$/;
     }
 
-    extractLabels(asmtext: string, colOffset: number): AsmResultLabel[] | undefined {
-        const match = asmtext.match(this.labelExtractRe);
+    extractLabels(line: string): AsmResultLabel[] | undefined {
+        let match = line.match(this.operandRe);
         if (match) {
-            const labelsInLine: AsmResultLabel[] = [];
+            const preOperandLength = match[1].length;
+            const operand = match[2];
 
-            const label = match[1];
+            if (operand === 'a' || operand === 'A') {
+                return undefined;
+            }
 
-            const startCol = asmtext.indexOf(label);
-            labelsInLine.push({
-                name: label,
-                range: {
-                    startCol: startCol + colOffset,
-                    endCol: startCol + colOffset + label.length,
-                },
-            });
+            match = operand.match(this.labelInOperandRe);
+            if (match) {
+                const labelsInLine: AsmResultLabel[] = [];
 
-            return labelsInLine;
+                const label = match[1];
+
+                const startCol = preOperandLength + operand.indexOf(label) + 1;
+                labelsInLine.push({
+                    name: label,
+                    range: {
+                        startCol: startCol,
+                        endCol: startCol + label.length,
+                    },
+                });
+
+                return labelsInLine;
+            }
         }
 
         return undefined;
@@ -74,14 +87,63 @@ export class ORCAAsmParser extends AsmParser {
         const result: ParsedAsmResultLine[] = [];
         const asmLines = asm.split('\n');
 
-        for (const line of asmLines) {
+        const labelDefinitions: Record<string, number> = {};
+
+        for (let line of asmLines) {
+            let match = line.match(this.commentRe);
+            if (match) {
+                if (!filters.commentOnly) {
+                    result.push({
+                        text: line,
+                    });
+                }
+                continue;
+            }
+
+            // Insert missing spaces after long labels.
+            // These may be omitted due to a bug in Golden Gate's dumpobj.
+            match = line.match(this.buggyLabelRe);
+            if (match) {
+                line = match[1] + ' ' + match[2];
+            }
+
+            match = line.match(this.labelDefinitionRe);
+            if (match) {
+                labelDefinitions[match[1]] = result.length + 1;
+            }
+
+            if (filters.commentOnly || filters.trim) {
+                match = line.match(this.linePreCommentRe);
+                if (match) {
+                    line = match[1];
+                }
+            }
+
+            if (filters.directives) {
+                match = line.match(this.directiveRe);
+                if (match) continue;
+            }
+
+            if (filters.trim) {
+                match = line.match(this.labelOpcodeOperandRe);
+                if (match) {
+                    line = match[1] + (match[1].length === 0 ? '  ' : ' ') + match[2] + ' ' + match[3];
+                }
+            }
+
+            if (result.length === 0 || (filters.trim && result[result.length - 1].text.trim() !== 'end')) {
+                if (line.trim() === '') continue;
+            }
+
             result.push({
-                text: line,
+                text: line.trimEnd(),
+                labels: this.extractLabels(line),
             });
         }
 
         return {
             asm: result,
+            labelDefinitions: labelDefinitions,
         };
     }
 }
