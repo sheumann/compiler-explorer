@@ -1,4 +1,4 @@
-// Copyright (c) 2022, Compiler Explorer Authors
+// Copyright (c) 2025, Compiler Explorer Authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,8 @@ export class ORCACompiler extends BaseCompiler {
         super(compilerInfo, env);
         this.goldenGate = this.compilerProps<string>(`compiler.${this.compiler.id}.goldenGate`);
         this.asm = new ORCAAsmParser(this.compilerProps);
+        this.compiler.demangler = '';
+        this.demanglerClass = null;
     }
 
     override getDefaultExecOptions() {
