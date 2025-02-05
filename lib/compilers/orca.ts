@@ -24,7 +24,9 @@
 
 import path from 'path';
 
+import {BypassCache, CacheKey, CompilationResult} from '../../types/compilation/compilation.interfaces.js';
 import type {PreliminaryCompilerInfo} from '../../types/compiler.interfaces.js';
+import {ExecutableExecutionOptions} from '../../types/execution/execution.interfaces.js';
 import type {ParseFiltersAndOutputOptions} from '../../types/features/filters.interfaces.js';
 import {BaseCompiler} from '../base-compiler.js';
 import {CompilationEnvironment} from '../compilation-env.js';
@@ -74,5 +76,16 @@ export class ORCACompiler extends BaseCompiler {
         }
 
         return options;
+    }
+
+    override async handleExecution(
+        key: CacheKey,
+        executeParameters: ExecutableExecutionOptions,
+        bypassCache: BypassCache,
+    ): Promise<CompilationResult> {
+        if (this.goldenGate) {
+            executeParameters.env.GOLDEN_GATE = this.goldenGate;
+        }
+        return super.handleExecution(key, executeParameters, bypassCache);
     }
 }
